@@ -8,25 +8,10 @@ import HomeFooter from '../components/HomeFooter.vue';
     <HomeHeader />
 
     <main class="content">
-      <h2>Bienvenido al Home</h2>
+      <h2>Planes</h2>
       <p>Este es el contenido principal</p>
     </main>
 
     <HomeFooter />
   </div>
 </template>
-
-
-
-<style scoped>
-.layout {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-
-.content {
-  flex: 1;
-  padding: 20px;
-}
-</style>
