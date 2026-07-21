@@ -1,6 +1,9 @@
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.db import models
+from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.db.models import Q
 
 
 username_validator = RegexValidator(
@@ -47,3 +50,149 @@ class Usuario(AbstractUser):
 
     def __str__(self) -> str:
         return self.username
+
+class Membresia(models.Model):
+    class Rol(models.TextChoices):
+        PROPIETARIO = "propietario", "Propietario"
+        ADMINISTRADOR = "administrador", "Administrador"
+        CONTADOR_EXTERNO = "contador_externo", "Contador externo"
+        EMPLEADO = "empleado", "Empleado"
+        CONSULTA = "consulta", "Solo consulta"
+
+    class Estado(models.TextChoices):
+        PENDIENTE = "pendiente", "Pendiente"
+        ACTIVA = "activa", "Activa"
+        SUSPENDIDA = "suspendida", "Suspendida"
+        REVOCADA = "revocada", "Revocada"
+
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="membresias",
+        verbose_name="usuario",
+    )
+
+    empresa = models.ForeignKey(
+        "empresas.Empresa",
+        on_delete=models.CASCADE,
+        related_name="membresias",
+        verbose_name="empresa",
+    )
+
+    rol = models.CharField(
+        "rol",
+        max_length=20,
+        choices=Rol.choices,
+        default=Rol.EMPLEADO,
+    )
+
+    estado = models.CharField(
+        "estado",
+        max_length=12,
+        choices=Estado.choices,
+        default=Estado.PENDIENTE,
+    )
+
+    fecha_invitacion = models.DateTimeField(
+        "fecha de invitación",
+        auto_now_add=True,
+    )
+
+    fecha_aceptacion = models.DateTimeField(
+        "fecha de aceptación",
+        blank=True,
+        null=True,
+    )
+
+    fecha_actualizacion = models.DateTimeField(
+        "fecha de actualización",
+        auto_now=True,
+    )
+
+    class Meta:
+        verbose_name = "membresía"
+        verbose_name_plural = "membresías"
+        ordering = ("empresa", "usuario")
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=("usuario", "empresa"),
+                name="unica_membresia_usuario_empresa",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return (
+            f"{self.usuario.username} - "
+            f"{self.empresa.razon_social} - "
+            f"{self.get_rol_display()}"
+        )
+    
+
+class MembresiaSucursal(models.Model):
+    membresia = models.ForeignKey(
+        Membresia,
+        on_delete=models.CASCADE,
+        related_name="sucursales_asignadas",
+        verbose_name="membresía",
+    )
+
+    sucursal = models.ForeignKey(
+        "empresas.Sucursal",
+        on_delete=models.CASCADE,
+        related_name="membresias_asignadas",
+        verbose_name="sucursal",
+    )
+
+    es_principal = models.BooleanField(
+        "es sucursal principal",
+        default=False,
+    )
+
+    fecha_asignacion = models.DateTimeField(
+        "fecha de asignación",
+        auto_now_add=True,
+    )
+
+    class Meta:
+        verbose_name = "sucursal de membresía"
+        verbose_name_plural = "sucursales de membresías"
+        ordering = ("membresia", "sucursal")
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=("membresia", "sucursal"),
+                name="unica_sucursal_por_membresia",
+            ),
+            models.UniqueConstraint(
+                fields=("membresia",),
+                condition=Q(es_principal=True),
+                name="unica_sucursal_principal_por_membresia",
+            ),
+        ]
+
+    def clean(self):
+        super().clean()
+
+        if not self.membresia_id or not self.sucursal_id:
+            return
+
+        if self.membresia.empresa_id != self.sucursal.empresa_id:
+            raise ValidationError(
+                {
+                    "sucursal": (
+                        "La sucursal debe pertenecer a la misma empresa "
+                        "de la membresía."
+                    )
+                }
+            )
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+    def __str__(self) -> str:
+        return (
+            f"{self.membresia.usuario.username} - "
+            f"{self.sucursal.nombre}"
+        )

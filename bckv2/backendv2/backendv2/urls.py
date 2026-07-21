@@ -14,6 +14,7 @@ Including another URLconfpython manage.py check
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+"""
 from django.contrib import admin
 from django.urls import include, path
 
@@ -22,3 +23,27 @@ urlpatterns = [
     path("api/auth/", include("djoser.urls")),
     path("api/auth/", include("djoser.urls.jwt")),
 ]
+"""
+
+from django.conf import settings
+from django.conf.urls.static import static
+from django.contrib import admin
+from django.urls import include, path
+
+
+admin.site.site_header = "Administración de FacturaERP"
+admin.site.site_title = "FacturaERP"
+admin.site.index_title = "Panel de administración"
+
+
+urlpatterns = [
+    path("admin/", admin.site.urls),
+    path("api/auth/", include("djoser.urls")),
+    path("api/auth/", include("djoser.urls.jwt")),
+]
+
+if settings.DEBUG:
+    urlpatterns += static(
+        settings.MEDIA_URL,
+        document_root=settings.MEDIA_ROOT,
+    )
