@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'djoser',
     'cuentas',
+    'empresas',
 ]
 
 MIDDLEWARE = [
@@ -135,6 +136,18 @@ DJOSER = {
     "SEND_ACTIVATION_EMAIL": False,
     "HIDE_USERS": True,
     "TOKEN_MODEL": None,
+
+    "SERIALIZERS": {
+        "user_create_password_retype": (
+            "cuentas.serializers.UsuarioCrearSerializer"
+        ),
+        "user": (
+            "cuentas.serializers.UsuarioPublicoSerializer"
+        ),
+        "current_user": (
+            "cuentas.serializers.UsuarioActualSerializer"
+        ),
+    },
 }
 
 from datetime import timedelta
