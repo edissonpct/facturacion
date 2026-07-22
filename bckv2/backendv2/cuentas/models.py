@@ -2,8 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.db import models
 from django.conf import settings
-from django.core.exceptions import ValidationError
-from django.db.models import Q
+
 
 
 username_validator = RegexValidator(
@@ -128,71 +127,3 @@ class Membresia(models.Model):
             f"{self.get_rol_display()}"
         )
     
-
-class MembresiaSucursal(models.Model):
-    membresia = models.ForeignKey(
-        Membresia,
-        on_delete=models.CASCADE,
-        related_name="sucursales_asignadas",
-        verbose_name="membresía",
-    )
-
-    sucursal = models.ForeignKey(
-        "empresas.Sucursal",
-        on_delete=models.CASCADE,
-        related_name="membresias_asignadas",
-        verbose_name="sucursal",
-    )
-
-    es_principal = models.BooleanField(
-        "es sucursal principal",
-        default=False,
-    )
-
-    fecha_asignacion = models.DateTimeField(
-        "fecha de asignación",
-        auto_now_add=True,
-    )
-
-    class Meta:
-        verbose_name = "sucursal de membresía"
-        verbose_name_plural = "sucursales de membresías"
-        ordering = ("membresia", "sucursal")
-
-        constraints = [
-            models.UniqueConstraint(
-                fields=("membresia", "sucursal"),
-                name="unica_sucursal_por_membresia",
-            ),
-            models.UniqueConstraint(
-                fields=("membresia",),
-                condition=Q(es_principal=True),
-                name="unica_sucursal_principal_por_membresia",
-            ),
-        ]
-
-    def clean(self):
-        super().clean()
-
-        if not self.membresia_id or not self.sucursal_id:
-            return
-
-        if self.membresia.empresa_id != self.sucursal.empresa_id:
-            raise ValidationError(
-                {
-                    "sucursal": (
-                        "La sucursal debe pertenecer a la misma empresa "
-                        "de la membresía."
-                    )
-                }
-            )
-
-    def save(self, *args, **kwargs):
-        self.full_clean()
-        return super().save(*args, **kwargs)
-
-    def __str__(self) -> str:
-        return (
-            f"{self.membresia.usuario.username} - "
-            f"{self.sucursal.nombre}"
-        )

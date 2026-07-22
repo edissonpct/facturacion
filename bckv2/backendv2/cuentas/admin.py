@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .models import Membresia, MembresiaSucursal, Usuario
+from .models import Membresia, Usuario
 
 
 @admin.register(Usuario)
@@ -58,24 +58,6 @@ class UsuarioAdmin(UserAdmin):
     ordering = ("username",)
 
 
-class MembresiaSucursalInline(admin.TabularInline):
-    model = MembresiaSucursal
-    extra = 0
-
-    autocomplete_fields = (
-        "sucursal",
-    )
-
-    fields = (
-        "sucursal",
-        "es_principal",
-        "fecha_asignacion",
-    )
-
-    readonly_fields = (
-        "fecha_asignacion",
-    )
-
 
 @admin.register(Membresia)
 class MembresiaAdmin(admin.ModelAdmin):
@@ -120,45 +102,3 @@ class MembresiaAdmin(admin.ModelAdmin):
         "usuario",
     )
 
-    inlines = (
-        MembresiaSucursalInline,
-    )
-
-
-@admin.register(MembresiaSucursal)
-class MembresiaSucursalAdmin(admin.ModelAdmin):
-    list_display = (
-        "membresia",
-        "sucursal",
-        "es_principal",
-        "fecha_asignacion",
-    )
-
-    search_fields = (
-        "membresia__usuario__username",
-        "membresia__usuario__email",
-        "membresia__empresa__ruc",
-        "membresia__empresa__razon_social",
-        "sucursal__codigo",
-        "sucursal__nombre",
-    )
-
-    list_filter = (
-        "es_principal",
-        "membresia__empresa",
-        "sucursal",
-    )
-
-    autocomplete_fields = (
-        "membresia",
-        "sucursal",
-    )
-
-    readonly_fields = (
-        "fecha_asignacion",
-    )
-
-    ordering = (
-        "membresia",
-        "sucursal",
-    )
