@@ -2,7 +2,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .permisos import EmpresaActiva
+from .permisos import EmpresaActiva, SucursalActiva
 from django.db.models import Prefetch
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
@@ -94,4 +94,46 @@ class EmpresasDisponiblesView(ListAPIView):
             .order_by(
                 "empresa__razon_social",
             )
+        )
+
+class ContextoOperativoView(APIView):
+    """
+    Devuelve el contexto completo utilizado por operaciones
+    que dependen de una empresa y una sucursal.
+    """
+
+    permission_classes = [
+        IsAuthenticated,
+        EmpresaActiva,
+        SucursalActiva,
+    ]
+
+    def get(self, request):
+        return Response(
+            {
+                "usuario": {
+                    "id": request.user.id,
+                    "username": request.user.username,
+                    "email": request.user.email,
+                },
+                "membresia": {
+                    "id": request.membresia.id,
+                    "rol": request.membresia.rol,
+                    "rol_nombre": request.membresia.get_rol_display(),
+                    "estado": request.membresia.estado,
+                },
+                "empresa": {
+                    "id": request.empresa.id,
+                    "ruc": request.empresa.ruc,
+                    "razon_social": request.empresa.razon_social,
+                    "nombre_comercial": request.empresa.nombre_comercial,
+                },
+                "sucursal": {
+                    "id": request.sucursal.id,
+                    "codigo": request.sucursal.codigo,
+                    "nombre": request.sucursal.nombre,
+                    "direccion": request.sucursal.direccion,
+                    "es_matriz": request.sucursal.es_matriz,
+                },
+            }
         )

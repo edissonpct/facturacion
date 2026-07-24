@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'djoser',
     'cuentas',
     'empresas',
+    'suscripciones',
 ]
 
 MIDDLEWARE = [

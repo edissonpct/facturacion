@@ -3,6 +3,7 @@ import Login from "../views/Login.vue";
 import Home from "../views/Home.vue";
 import Plan from "../views/Plan.vue";
 import Dashboard from "../views/Dashboard.vue";
+import Registro from "../views/Registro.vue";
 
 const router = createRouter({
     history: createWebHistory(),
@@ -26,6 +27,11 @@ const router = createRouter({
             path: "/dashboard", 
             name: "Dashboard",
             component: Dashboard
+        },
+        {
+            path: "/registro", 
+            name: "Registro",
+            component: Registro
         }
     
     ]

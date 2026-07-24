@@ -1,9 +1,14 @@
 from django.urls import path
 
-from .views import ContextoEmpresaView, EmpresasDisponiblesView
+from .views import (
+    ContextoEmpresaView,
+    ContextoOperativoView,
+    EmpresasDisponiblesView,
+)
 
 
 app_name = "cuentas"
+
 
 urlpatterns = [
     path(
@@ -15,5 +20,10 @@ urlpatterns = [
         "contexto/",
         ContextoEmpresaView.as_view(),
         name="contexto-empresa",
+    ),
+    path(
+        "contexto-operativo/",
+        ContextoOperativoView.as_view(),
+        name="contexto-operativo",
     ),
 ]
